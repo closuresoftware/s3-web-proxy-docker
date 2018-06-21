@@ -1,20 +1,21 @@
-# s3proxy-docker
-Docker image for [s3proxy](https://github.com/closuresoftware/s3proxy): A web server that uses Amazon S3 as backend, optimized to be used as a private maven repository.
+# s3-web-proxy
+Docker image for [s3-web-proxy](https://github.com/closuresoftware/s3-web-proxy): A web server that uses Amazon S3 as backend, optimized to be used as a private maven repository.
 
 # Supported tags and respective `Dockerfile` links
 
--	[`0.1.1`, `latest` Dockerfile](https://github.com/closuresoftware/s3proxy-docker/blob/master/Dockerfile)
+-	[`0.2.1`, `0.2`, `latest` Dockerfile](https://github.com/closuresoftware/s3-web-proxy-docker/blob/master/Dockerfile)
 
-## What is s3proxy
+## What is s3-web-proxy
 
-[s3proxy](https://github.com/closuresoftware/s3proxy) is a grails application that acts as a proxy for an S3 backend, allowing GET/POST/PUT operations over the content.
+[s3-web-proxy](https://github.com/closuresoftware/s3-web-proxy) is a web proxy for an S3 backend, allowing GET/POST/PUT operations over the content.
 
 It's mainly intended as a front-end for an S3 backed maven private repository, and thus authentication
 is currently mandatory. Though that will be softened in the next version to allow public
 GET operations.
 
 The authentication system is limited currently to standard HTTP basic authentication,
- so you should put SSL on it, possibly with an Apache server using mod_jk.
+ so you should use SSL on Tomcat, or hide it behind an SSL enabled web server such as 
+ an Apache server using mod_jk.
  
 The server uses a local cache to minimize the traffic to S3.
 
@@ -31,11 +32,11 @@ A minimal run configuration would be:
         -e AWS_SECRET_KEY=my-aws-secret-key \
         -e AWS_REGION=default-aws-region \
         -e S3PROXY_AWS_BUCKET=my-bucket-name \
-        closuresoftware/s3proxy
+        closuresoftware/s3-web-proxy
 
-This would start an s3proxy with the built-in providers and auth file. 
-There's just one user defined (admin) with password admin, so that's just for playing around
-with it. You must define your own auth file.
+This would start an s3-web-proxy with the built-in providers and auth file. 
+The admin user name is "admin" and the password also "admin", you should change that.
+And it uses a local file for storing passwords, initially empty.
 
 Needless to say, your IAM user for the access key must have rw permissions on the bucket.
 
@@ -55,11 +56,6 @@ The default settings will use a maximum of 1Gb for the local cache.
     By default uses the built-in DefaultUserAuthProvider.
     Check the authentication section for details.
 
-* **auth.file** or env var **S3PROXY_AUTH_FILE**
-
-    this is a mandatory value when using the default auth provider, contains a valid URL to load an authentication
-    file. Check the authentication section for details.
-
 * **auth.realm** or env var **S3PROXY_AUTH_REALM**
 
     This is the HTTP basic authentication realm display name, by default S3 Proxy.
@@ -75,6 +71,21 @@ The default settings will use a maximum of 1Gb for the local cache.
     This is the max size of the local cache, by default 1Gb. The max size can be expressed
     as a byte value, or using a valid suffix (m for Mb or g for Gb). Default value is, accordingly,
     1g.
+    
+### Default auth provider options
+
+* **auth.file** or env var **S3PROXY_AUTH_FILE**
+
+    this is a mandatory value when using the default auth provider, contains a valid URL to load an authentication
+    file. Check the authentication section for details.
+    
+* **auth.admin.username** or env var **S3PROXY_ADMIN_USERNAME**
+
+    username of the admin user, by default "admin". You should change this value.
+
+* **auth.admin.password** or env var **S3PROXY_ADMIN_PASSWORD**
+
+    password of the admin user, by default "admin". You MUST change this value.
 
 ### Tomcat options
 
@@ -98,8 +109,8 @@ You must also set these environment variables in order for the AWS sdk to work (
 
 ## Authentication
 
-The built-in authentication provider uses a password file similar to
-htpasswd or unix passwd, with a single line per user entry.
+The built-in authentication provider uses environment variables to define the admin user name and password,
+and also a password file similar to htpasswd or unix passwd, with a single line per user entry.
 
 Each entry has the form:
 
@@ -107,20 +118,19 @@ Each entry has the form:
 
 Where password-digest is a secure hash (MD5) of the password coded in Base64 format.
 
-The easiest way to create new username-password combinations suitable to put them on your
-auth file is to run the password-gen on a running s3proxy container, such as:
-
-    docker run -it my-s3proxy-container password-gen
-
-The tool will ask for user name and password, and will generate a valid line to add to your 
-auth file.
-
 The auth.file / S3PROXY_AUTH_FILE configuration option
 must be a valid URL as supported by java.net.URL, such as file: or http: or https:.
 
 It also supports an S3 url which has the following form:
 
     s3://bucket-name/file-key
+    
+If you use file or s3 urls for the auth file, the default provider can update them and so
+you can use the built-in, very simple, user management interface at
+
+    http://myserver.address:8080/__user
+    
+You can't have files under the __user scope, it's reserved. 
 
 ## Considerations
 
@@ -152,6 +162,8 @@ For example:
     export AWS_SECRET_KEY=my-aws-secret-key
     export AWS_REGION=default-aws-region 
     export S3PROXY_AWS_BUCKET=my-bucket-name
+    export S3PROXY_ADMIN_USERNAME=my-admin-username
+    export S3PROXY_ADMIN_PASSWORD=my-admin-password
 
 
 You can override the file location and name by setting the SECRETS_FILE environment variable
