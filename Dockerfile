@@ -30,4 +30,4 @@ RUN mkdir -p /root/.grails
 COPY s3-web-proxy-config.groovy /root/.grails/
 
 # copy app
-RUN wget -O /usr/local/tomcat/webapps/ROOT.war https://s3-eu-west-1.amazonaws.com/closure-downloads/s3-web-proxy-0.2.1.war
+RUN wget -O /usr/local/tomcat/webapps/ROOT.war https://s3-eu-west-1.amazonaws.com/closure-downloads/s3-web-proxy-0.2.4.war

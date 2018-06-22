@@ -3,15 +3,14 @@ Docker image for [s3-web-proxy](https://github.com/closuresoftware/s3-web-proxy)
 
 # Supported tags and respective `Dockerfile` links
 
--	[`0.2.1`, `0.2`, `latest` Dockerfile](https://github.com/closuresoftware/s3-web-proxy-docker/blob/master/Dockerfile)
+-	[`0.2.4`, `latest` Dockerfile](https://github.com/closuresoftware/s3-web-proxy-docker/blob/master/Dockerfile)
 
 ## What is s3-web-proxy
 
 [s3-web-proxy](https://github.com/closuresoftware/s3-web-proxy) is a web proxy for an S3 backend, allowing GET/POST/PUT operations over the content.
 
-It's mainly intended as a front-end for an S3 backed maven private repository, and thus authentication
-is currently mandatory. Though that will be softened in the next version to allow public
-GET operations.
+It's mainly intended as a front-end for an S3 backed maven private repository. You can
+allow public access to GET operations, though by default all access needs to be authenticated.
 
 The authentication system is limited currently to standard HTTP basic authentication,
  so you should use SSL on Tomcat, or hide it behind an SSL enabled web server such as 
@@ -44,7 +43,7 @@ The default settings will use a maximum of 1Gb for the local cache.
 
 ## Available configuration options:
 
-### s3proxy configuration options
+### s3-web-proxy configuration options
 
 * **aws.bucket** or env var **S3PROXY_AWS_BUCKET**
 
@@ -86,6 +85,10 @@ The default settings will use a maximum of 1Gb for the local cache.
 * **auth.admin.password** or env var **S3PROXY_ADMIN_PASSWORD**
 
     password of the admin user, by default "admin". You MUST change this value.
+
+* **auth.allowPublicGet** or env var **S3PROXY_ALLOW_PUBLIC_GET**
+
+    setting this to "true" (without the quotes) will allow public access to GET operations.
 
 ### Tomcat options
 
@@ -134,7 +137,7 @@ You can't have files under the __user scope, it's reserved.
 
 ## Considerations
 
-s3proxy validates cache entries always against the bucket, to make sure content is always
+s3-web-proxy validates cache entries always against the bucket, to make sure content is always
 up to date. This means that a call is always made to S3. However, files are only transferred
 from S3 when the file is not available locally or the file has been updated at S3.
 
@@ -145,7 +148,7 @@ be deleted choosing those which were accessed least recently.
 
 ## Docker swarm mode
 
-Being a proxy for an S3 backend, s3proxy is designed to run smoothly with docker swarm mode.
+Being a proxy for an S3 backend, s3-web-proxy is designed to run smoothly with docker swarm mode.
 Instances can be spawn safely in any node of your swarm as they are effectively stateless.
 
 You can always use plain environment variables in your compose or stack file, but the image
@@ -179,7 +182,7 @@ the cache files and database. This is useful to keep the cache file when an imag
 or restarted in the same node.
 ## License
 
-s3proxy is Open Source licensed under the Apache 2.0 license.
+s3-web-proxy is Open Source licensed under the Apache 2.0 license.
 
 View [license information](https://www.apache.org/licenses/LICENSE-2.0) for the software contained in this image.
 
